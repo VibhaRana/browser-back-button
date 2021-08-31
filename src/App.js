@@ -1,35 +1,86 @@
-import {useState, useEffect} from 'react'
-import './App.css';
-import {useHistory} from 'react-router-dom'
 
-function App() {
-  const[locationKeys, setLocationKeys] = useState([])
-  const history = useHistory()
 
-  useEffect(() => {
-    return history.listen(location => {
-      if(history.action === 'PUSH'){
-        setLocationKeys([location.key])
-      }
-      if(history.action === 'POP'){
-        if(locationKeys[1] === location.key){
-          setLocationKeys(([ _, ...keys ]) => keys)
-          window.onpopstate = (event) => {
-            console.log(event)
-          }
-          //Handle forward event
-        }else{
-          setLocationKeys((keys) => [location.key, ...keys ])
-          // Handle back event
-        }
-      }
-    })
-  }, [locationKeys])
-  return (
-    <div className="App">
-      Hi there
+import React, { useState } from 'react';
+import Link from './Link';
+
+export default function App() {
+    const [counter, setCounter] = useState(0);
+    const [pathname, setPathname] = useState(window.location.pathname);
+
+    const updatePathname = (newLocation) => {
+        setPathname(newLocation);
+        window.history.pushState(null, '', newLocation);
+    };
+    window.addEventListener('popstate', () => {
+        setPathname(window.location.pathname);
+    });
+
+
+    let innerComponent;
+    switch (pathname) {
+        case '/':
+            innerComponent = React.createElement(Home, null);
+            break;
+        case '/about':
+            innerComponent = React.createElement(About, null);
+            break;
+        case '/users':
+            innerComponent = React.createElement(Users, null);
+            break;
+        default:
+            innerComponent = React.createElement(Home, null);
+            break;
+    }
+    return (
+      <div>
+      <button
+        onClick={() => setCounter(counter + 1)}
+      >
+        inc: {counter}
+      </button>
+      <nav>
+        <ul>
+          <li>
+            <Link
+              to="/"
+              updatePathname={updatePathname}
+            >
+              Home
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/about"
+              updatePathname={updatePathname}
+            >
+              About
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/users"
+              updatePathname={updatePathname}
+            >
+              Users
+            </Link>
+          </li>
+        </ul>
+      </nav>
+      {innerComponent}
     </div>
   );
 }
 
-export default App;
+function Home() {
+  return <h2>Home</h2>;
+}
+
+function About() {
+  return <h2>About</h2>;
+}
+
+function Users() {
+  return <h2>Users</h2>;
+}
+    
+
